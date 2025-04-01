@@ -6,6 +6,9 @@ error_reporting(E_ALL);
 require_once 'includes/connect.php';
 require_once 'includes/functions.php';
 include 'includes/header.php';
+if (!isset($_SESSION['csrf_token'])) {
+   $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 ?>
 
 <div class="back_re">
@@ -24,22 +27,23 @@ include 'includes/header.php';
    <div class="container">
       <div class="row">
          <div class="col-md-6">
-            <form id="request" class="main_form" method="post">
+            <form id="request" class="main_form" method="post" action="api/contact_submit.php">
+               <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                <div class="row">
-                  <div class="col-md-12 ">
-                     <input class="contactus" placeholder="Name" type="type" name="Name">
+                  <div class="col-md-12">
+                     <input class="contactus" placeholder="Name" type="text" name="name" required>
                   </div>
                   <div class="col-md-12">
-                     <input class="contactus" placeholder="Email" type="type" name="Email">
+                     <input class="contactus" placeholder="Email" type="email" name="email" required>
                   </div>
                   <div class="col-md-12">
-                     <input class="contactus" placeholder="Phone Number" type="type" name="Phone Number">
+                     <input class="contactus" placeholder="Phone Number" type="text" name="phone">
                   </div>
                   <div class="col-md-12">
-                     <textarea class="textarea" placeholder="Message" type="type" Message="Name">Message</textarea>
+                     <textarea class="textarea" placeholder="Message" name="message" required></textarea>
                   </div>
                   <div class="col-md-12">
-                     <button class="send_btn">Send</button>
+                     <button class="send_btn" type="submit">Send</button>
                   </div>
                </div>
             </form>

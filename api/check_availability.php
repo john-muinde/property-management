@@ -45,16 +45,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Check for available rooms
     if (empty($errors)) {
-        // In a real application, this would query the database to find available rooms
-        // For this example, we'll just redirect to the rooms page
+        // Query to find booked rooms in the date range
+        $sql = "SELECT DISTINCT room_id FROM room_bookings 
+                WHERE status != 'cancelled' AND (
+                    (arrival_date <= ? AND departure_date >= ?) 
+                    OR (arrival_date <= ? AND departure_date >= ?) 
+                    OR (arrival_date >= ? AND departure_date <= ?)
+                )";
+
+        $stmt = mysqli_prepare($conn, $sql);
+        mysqli_stmt_bind_param(
+            $stmt,
+            "ssssss",
+            $departure_date,
+            $arrival_date,
+            $departure_date,
+            $arrival_date,
+            $arrival_date,
+            $departure_date
+        );
+
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+
+        // Get booked room IDs
+        $booked_rooms = [];
+        while ($row = mysqli_fetch_assoc($result)) {
+            $booked_rooms[] = $row['room_id'];
+        }
+
+        // Get all available rooms
+        $available_rooms_sql = "SELECT id FROM rooms WHERE is_available = 1";
+        if (!empty($booked_rooms)) {
+            $available_rooms_sql .= " AND id NOT IN (" . implode(',', $booked_rooms) . ")";
+        }
+
+        $available_rooms_result = mysqli_query($conn, $available_rooms_sql);
+        $available_rooms = [];
+
+        if ($available_rooms_result && mysqli_num_rows($available_rooms_result) > 0) {
+            while ($row = mysqli_fetch_assoc($available_rooms_result)) {
+                $available_rooms[] = $row['id'];
+            }
+        }
 
         // Store dates in session for pre-filling forms
         $_SESSION['check_arrival'] = $arrival_date;
         $_SESSION['check_departure'] = $departure_date;
         $_SESSION['check_adults'] = isset($_POST['adults']) ? (int)$_POST['adults'] : 2;
 
-        $_SESSION['message'] = "Rooms are available for your selected dates. Choose a room to book.";
-        $_SESSION['message_type'] = "success";
+        if (empty($available_rooms)) {
+            $_SESSION['message'] = "Sorry, no rooms are available for your selected dates.";
+            $_SESSION['message_type'] = "warning";
+        } else {
+            $_SESSION['available_rooms'] = $available_rooms;
+            $_SESSION['message'] = "We found " . count($available_rooms) . " room(s) available for your selected dates.";
+            $_SESSION['message_type'] = "success";
+        }
 
         // Redirect to rooms page
         header('Location: ../rooms.php?check=availability');

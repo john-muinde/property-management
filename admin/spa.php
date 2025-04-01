@@ -10,6 +10,7 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
     exit;
 }
 
+require_once '../includes/functions.php';
 // Include database connection
 require_once '../includes/connect.php';
 
@@ -237,7 +238,7 @@ if ($result && mysqli_num_rows($result) > 0) {
                                                         </td>
                                                         <td><?php echo htmlspecialchars($service['name']); ?></td>
                                                         <td><?php echo $service['duration']; ?> minutes</td>
-                                                        <td>$<?php echo number_format($service['price'], 2); ?></td>
+                                                        <td><?php echo format_price($service['price']); ?></td>
                                                         <td>
                                                             <?php if ($service['is_available']): ?>
                                                                 <span class="badge badge-success">Available</span>
