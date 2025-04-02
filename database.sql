@@ -79,16 +79,6 @@ CREATE TABLE
     PRIMARY KEY (id)
   );
 
--- Newsletter subscribers
-CREATE TABLE
-  subscribers (
-    id INT NOT NULL AUTO_INCREMENT,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    is_active TINYINT (1) DEFAULT 1,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id)
-  );
-
 -- Admin users
 CREATE TABLE
   users (
