@@ -12,7 +12,7 @@ require_once '../includes/functions.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Check token
-    if (!isset($_POST['token']) || $_POST['token'] !== $_SESSION['token']) {
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
         $_SESSION['message'] = "Invalid request. Please try again.";
         $_SESSION['message_type'] = "danger";
         header('Location: ../index.php');
@@ -30,8 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Get form data
-    $arrival_date = isset($_POST['arrival_date']) ? clean_input($_POST['arrival_date']) : '';
-    $departure_date = isset($_POST['departure_date']) ? clean_input($_POST['departure_date']) : '';
+    $arrival_date = isset($_POST['arrival_date']) ? $_POST['arrival_date'] : '';
+    $departure_date = isset($_POST['departure_date']) ? $_POST['departure_date'] : '';
 
     // Validate dates
     $today = date('Y-m-d');
@@ -45,28 +45,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Check for available rooms
     if (empty($errors)) {
-        // Query to find booked rooms in the date range
+        // Query to find booked rooms in the date range with direct SQL
         $sql = "SELECT DISTINCT room_id FROM room_bookings 
                 WHERE status != 'cancelled' AND (
-                    (arrival_date <= ? AND departure_date >= ?) 
-                    OR (arrival_date <= ? AND departure_date >= ?) 
-                    OR (arrival_date >= ? AND departure_date <= ?)
+                    (arrival_date <= '$departure_date' AND departure_date >= '$arrival_date') 
+                    OR (arrival_date <= '$departure_date' AND departure_date >= '$arrival_date') 
+                    OR (arrival_date >= '$arrival_date' AND departure_date <= '$departure_date')
                 )";
 
-        $stmt = mysqli_prepare($conn, $sql);
-        mysqli_stmt_bind_param(
-            $stmt,
-            "ssssss",
-            $departure_date,
-            $arrival_date,
-            $departure_date,
-            $arrival_date,
-            $arrival_date,
-            $departure_date
-        );
-
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
+        $result = mysqli_query($conn, $sql);
 
         // Get booked room IDs
         $booked_rooms = [];
@@ -92,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Store dates in session for pre-filling forms
         $_SESSION['check_arrival'] = $arrival_date;
         $_SESSION['check_departure'] = $departure_date;
-        $_SESSION['check_adults'] = isset($_POST['adults']) ? (int)$_POST['adults'] : 2;
+        $_SESSION['check_adults'] = isset($_POST['adults']) ? (int) $_POST['adults'] : 2;
 
         if (empty($available_rooms)) {
             $_SESSION['message'] = "Sorry, no rooms are available for your selected dates.";

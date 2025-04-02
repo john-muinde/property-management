@@ -1,9 +1,5 @@
 <?php
 
-/**
- * Contact Form API Endpoint
- */
-
 // Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -41,12 +37,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $response['errors'][] = ucfirst($field) . ' is required.';
             $has_errors = true;
         } else {
-            $contact_data[$field] = sanitize_input($_POST[$field]);
+            $contact_data[$field] = $_POST[$field];
         }
     }
 
     // Optional fields
-    $contact_data['phone'] = isset($_POST['phone']) ? sanitize_input($_POST['phone']) : '';
+    $contact_data['phone'] = isset($_POST['phone']) ? $_POST['phone'] : '';
 
     // Validate email format
     if (isset($contact_data['email']) && !filter_var($contact_data['email'], FILTER_VALIDATE_EMAIL)) {
@@ -57,19 +53,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // If no validation errors, save to database
     if (!$has_errors) {
         try {
-            $stmt = $pdo->prepare("INSERT INTO contact_submissions (name, email, phone, message) 
-                                  VALUES (:name, :email, :phone, :message)");
+            // Create the SQL query with direct values
+            $sql = "INSERT INTO contact_submissions (name, email, phone, message) 
+                    VALUES ('{$contact_data['name']}', '{$contact_data['email']}', '{$contact_data['phone']}', '{$contact_data['message']}')";
 
-            $stmt->bindParam(':name', $contact_data['name'], PDO::PARAM_STR);
-            $stmt->bindParam(':email', $contact_data['email'], PDO::PARAM_STR);
-            $stmt->bindParam(':phone', $contact_data['phone'], PDO::PARAM_STR);
-            $stmt->bindParam(':message', $contact_data['message'], PDO::PARAM_STR);
+            // Execute the query
+            $result = mysqli_query($conn, $sql);
 
-            $stmt->execute();
-
-            $response['success'] = true;
-            $response['message'] = 'Thank you for your message! Our team will contact you shortly.';
-        } catch (PDOException $e) {
+            if ($result) {
+                $response['success'] = true;
+                $response['message'] = 'Thank you for your message! Our team will contact you shortly.';
+            } else {
+                error_log('Contact Form Error: ' . mysqli_error($conn));
+                $response['message'] = 'An error occurred. Please try again later.';
+            }
+        } catch (Exception $e) {
             error_log('Contact Form Error: ' . $e->getMessage());
             $response['message'] = 'An error occurred. Please try again later.';
         }

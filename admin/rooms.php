@@ -11,6 +11,7 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
 }
 
 // Include database connection
+require_once '../includes/functions.php';
 require_once '../includes/connect.php';
 
 // Delete room if requested
@@ -152,7 +153,8 @@ if ($result && mysqli_num_rows($result) > 0) {
                 </div>
 
                 <?php if (isset($_SESSION['message'])): ?>
-                    <div class="alert alert-<?php echo $_SESSION['message_type']; ?> alert-dismissible fade show" role="alert">
+                    <div class="alert alert-<?php echo $_SESSION['message_type']; ?> alert-dismissible fade show"
+                        role="alert">
                         <?php
                         echo $_SESSION['message'];
                         unset($_SESSION['message']);
@@ -190,13 +192,14 @@ if ($result && mysqli_num_rows($result) > 0) {
                                                 <td><?php echo $room['id']; ?></td>
                                                 <td>
                                                     <?php if (!empty($room['image']) && file_exists("../images/" . $room['image'])): ?>
-                                                        <img src="../images/<?php echo $room['image']; ?>" alt="<?php echo htmlspecialchars($room['name']); ?>" class="room-image">
+                                                        <img src="../images/<?php echo $room['image']; ?>"
+                                                            alt="<?php echo htmlspecialchars($room['name']); ?>" class="room-image">
                                                     <?php else: ?>
                                                         <img src="../images/room_placeholder.jpg" alt="No image" class="room-image">
                                                     <?php endif; ?>
                                                 </td>
                                                 <td><?php echo htmlspecialchars($room['name']); ?></td>
-                                                <td>$<?php echo number_format($room['price'], 2); ?></td>
+                                                <td><?php echo format_price($room['price']); ?></td>
                                                 <td><?php echo $room['capacity']; ?> guests</td>
                                                 <td>
                                                     <?php if ($room['is_available']): ?>
@@ -206,13 +209,18 @@ if ($result && mysqli_num_rows($result) > 0) {
                                                     <?php endif; ?>
                                                 </td>
                                                 <td>
-                                                    <a href="room_edit.php?id=<?php echo $room['id']; ?>" class="btn btn-sm btn-info mr-1">
+                                                    <a href="room_edit.php?id=<?php echo $room['id']; ?>"
+                                                        class="btn btn-sm btn-info mr-1">
                                                         <i class="fas fa-edit"></i> Edit
                                                     </a>
-                                                    <a href="rooms.php?toggle=<?php echo $room['id']; ?>" class="btn btn-sm btn-warning mr-1" onclick="return confirm('Are you sure you want to toggle availability?')">
+                                                    <a href="rooms.php?toggle=<?php echo $room['id']; ?>"
+                                                        class="btn btn-sm btn-warning mr-1"
+                                                        onclick="return confirm('Are you sure you want to toggle availability?')">
                                                         <i class="fas fa-toggle-on"></i> Toggle
                                                     </a>
-                                                    <a href="rooms.php?delete=<?php echo $room['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this room?')">
+                                                    <a href="rooms.php?delete=<?php echo $room['id']; ?>"
+                                                        class="btn btn-sm btn-danger"
+                                                        onclick="return confirm('Are you sure you want to delete this room?')">
                                                         <i class="fas fa-trash"></i> Delete
                                                     </a>
                                                 </td>

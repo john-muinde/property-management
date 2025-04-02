@@ -15,7 +15,7 @@ $booking = [];
 // Check if form was submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Check token
-    if (!isset($_POST['token']) || $_POST['token'] !== $_SESSION['token']) {
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
         $errors[] = "Invalid request. Please try again.";
     } else {
         // Validate required fields
@@ -30,8 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Optional fields
-        $booking['adults'] = isset($_POST['adults']) ? (int)$_POST['adults'] : 1;
-        $booking['children'] = isset($_POST['children']) ? (int)$_POST['children'] : 0;
+        $booking['adults'] = isset($_POST['adults']) ? (int) $_POST['adults'] : 1;
+        $booking['children'] = isset($_POST['children']) ? (int) $_POST['children'] : 0;
         $booking['special_requests'] = isset($_POST['special_requests']) ? clean_input($_POST['special_requests']) : '';
 
         // Validate dates

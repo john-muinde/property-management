@@ -100,8 +100,8 @@ function is_subscribed($email)
 // Generate a token for forms
 function generate_token()
 {
-    if (!isset($_SESSION['token'])) {
-        $_SESSION['token'] = bin2hex(random_bytes(16));
+    if (!isset($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(16));
     }
-    return $_SESSION['token'];
+    return $_SESSION['csrf_token'];
 }
